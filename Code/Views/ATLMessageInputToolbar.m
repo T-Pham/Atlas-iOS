@@ -46,7 +46,7 @@ NSString *const ATLMessageInputToolbarSendButton  = @"Message Input Toolbar Send
 // Compose View Margin Constants
 static CGFloat const ATLLeftButtonHorizontalMargin = 6.0f;
 static CGFloat const ATLRightButtonHorizontalMargin = 4.0f;
-static CGFloat const ATLVerticalMargin = 7.0f;
+static CGFloat const ATLVerticalMargin = 9.0f;
 
 // Compose View Button Constants
 static CGFloat const ATLLeftAccessoryButtonWidth = 40.0f;
@@ -145,7 +145,7 @@ static CGFloat const ATLButtonHeight = 28.0f;
 
     self.dummyTextView.attributedText = self.textInputView.attributedText;
     CGSize fittedTextViewSize = [self.dummyTextView sizeThatFits:CGSizeMake(CGRectGetWidth(textViewFrame), MAXFLOAT)];
-    textViewFrame.size.height = ceil(MIN(fittedTextViewSize.height, self.textViewMaxHeight));
+    textViewFrame.size.height = ceil(MIN(32., self.textViewMaxHeight));
 
     frame.size.height = CGRectGetHeight(textViewFrame) + ATLVerticalMargin * 2;
     frame.origin.y -= frame.size.height - CGRectGetHeight(self.frame);
