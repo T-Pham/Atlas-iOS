@@ -46,9 +46,8 @@ NSString *const ATLMessageInputToolbarSendButton  = @"Message Input Toolbar Send
 // Compose View Margin Constants
 static CGFloat const ATLLeftButtonHorizontalMargin = 6.0f;
 static CGFloat const ATLRightButtonHorizontalMargin = 4.0f;
-static CGFloat const ATLVerticalMargin = 9.0f;
+static CGFloat const ATLVerticalMargin = 7.0f;
 
-static CGFloat const BLTextViewMinHeight = 32.;
 static CGFloat const BLTextViewTopPadding = 7.;
 
 // Compose View Button Constants
@@ -147,8 +146,9 @@ static CGFloat const ATLButtonHeight = 28.0f;
     textViewFrame.size.width = CGRectGetMinX(rightButtonFrame) - CGRectGetMinX(textViewFrame) - ATLRightButtonHorizontalMargin;
 
     self.dummyTextView.attributedText = self.textInputView.attributedText;
+    CGSize fittedTextViewSize = [self.dummyTextView sizeThatFits:CGSizeMake(CGRectGetWidth(textViewFrame), MAXFLOAT)];
 
-    textViewFrame.size.height = ceil(MIN(BLTextViewMinHeight, self.textViewMaxHeight));
+    textViewFrame.size.height = ceil(MIN(fittedTextViewSize.height, self.textViewMaxHeight));
 
     frame.size.height = CGRectGetHeight(textViewFrame) + ATLVerticalMargin * 2;
     frame.origin.y -= frame.size.height - CGRectGetHeight(self.frame);
@@ -165,7 +165,7 @@ static CGFloat const ATLButtonHeight = 28.0f;
     self.leftAccessoryButton.frame = leftButtonFrame;
     self.rightAccessoryButton.frame = rightButtonFrame;
     self.textInputView.frame = textViewFrame;
-    self.textInputView.textContainerInset = UIEdgeInsetsMake(BLTextViewTopPadding, 0, 0, 0);
+//    self.textInputView.textContainerInset = UIEdgeInsetsMake(BLTextViewTopPadding, 0, 0, 0);
 
     // Setting one's own frame like this is a no-no but seems to be the lesser of evils when working around the layout issues mentioned above.
     self.frame = frame;
