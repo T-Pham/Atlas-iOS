@@ -59,6 +59,16 @@ extern NSString *const ATLMessageInputToolbarAccessibilityLabel;
  */
 - (void)messageInputToolbarDidEndTyping:(ATLMessageInputToolbar *)messageInputToolbar;
 
+
+/**
+ @abstract Bandlab extensions
+ */
+- (BOOL)messageInputToolbarShouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text;
+
+- (void)messageInputToolbarDidBeginEditing;
+
+- (void)messageInputToolbarDidChangeText:(NSString *)text;
+
 @end
 
 /**

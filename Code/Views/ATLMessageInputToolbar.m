@@ -286,8 +286,28 @@ static CGFloat const ATLButtonHeight = 28.0f;
 
 #pragma mark - UITextViewDelegate
 
+- (void)textViewDidBeginEditing:(UITextView *)textView
+{
+    if ([self.inputToolBarDelegate respondsToSelector:@selector(messageInputToolbarDidBeginEditing)]) {
+        return [self.inputToolBarDelegate messageInputToolbarDidBeginEditing];
+    }
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
+{
+    if ([self.inputToolBarDelegate respondsToSelector:@selector(messageInputToolbarShouldChangeTextInRange:replacementText:)]) {
+        return [self.inputToolBarDelegate messageInputToolbarShouldChangeTextInRange:range replacementText:text];
+    }
+    
+    return YES;
+}
+
 - (void)textViewDidChange:(UITextView *)textView
 {
+    if ([self.inputToolBarDelegate respondsToSelector:@selector(messageInputToolbarDidChangeText:)]) {
+        [self.inputToolBarDelegate messageInputToolbarDidChangeText:textView.text];
+    }
+
     if (self.rightAccessoryButton.imageView) {
         [self configureRightAccessoryButtonState];
     }
