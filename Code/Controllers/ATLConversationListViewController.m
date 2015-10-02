@@ -328,7 +328,9 @@ NSString *const ATLConversationListViewControllerDeletionModeGlobal = @"Global";
                     actionString = ATLLocalizedString(@"atl.conversationlist.deletionmode.local.key", ATLConversationListViewControllerDeletionModeLocal, nil);
                     break;
                 case LYRDeletionModeAllParticipants:
-                    actionString = ATLLocalizedString(@"atl.conversationlist.deletionmode.global.key", ATLConversationListViewControllerDeletionModeGlobal, nil);
+                    if (self.delegate) {
+                        actionString = [self.delegate actionStringForGlobalDeletionMode];                        
+                    }
                     break;
                 default:
                     break;
@@ -339,10 +341,10 @@ NSString *const ATLConversationListViewControllerDeletionModeGlobal = @"Global";
         } else {
             switch (deletionMode.integerValue) {
                 case LYRDeletionModeLocal:
-                    actionColor = [UIColor redColor];
+                    actionColor = [UIColor grayColor];
                     break;
                 case LYRDeletionModeAllParticipants:
-                    actionColor = [UIColor grayColor];
+                    actionColor = [UIColor redColor];
                     break;
                 default:
                     break;
