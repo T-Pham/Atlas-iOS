@@ -328,8 +328,8 @@ NSString *const ATLConversationListViewControllerDeletionModeGlobal = @"Global";
                     actionString = ATLLocalizedString(@"atl.conversationlist.deletionmode.local.key", ATLConversationListViewControllerDeletionModeLocal, nil);
                     break;
                 case LYRDeletionModeAllParticipants:
-                    if (self.delegate) {
-                        actionString = [self.delegate actionStringForGlobalDeletionMode];                        
+                    if (self.dataSource) {
+                        actionString = [self.dataSource actionStringForGlobalDeletionMode];                        
                     }
                     break;
                 default:
