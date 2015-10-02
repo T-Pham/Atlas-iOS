@@ -71,7 +71,7 @@ static NSDateFormatter *ATLShortTimeFormatter()
 
 @implementation ATLConversationTableViewCell
 
-static CGFloat const ATLConversationLabelTopPadding = 8.0f;
+static CGFloat const ATLConversationLabelTopPadding = 14.0f;
 static CGFloat const ATLDateLabelRightPadding = 32.0f;
 static CGFloat const ATLLastMessageLabelRightPadding = 16;
 static CGFloat const ATLConversationTitleLabelRightPadding = 2.0f;
@@ -133,7 +133,7 @@ static CGFloat const ATLChevronIconViewRightPadding = 14.0f;
     _lastMessageLabel.translatesAutoresizingMaskIntoConstraints = NO;
     _lastMessageLabel.font = _lastMessageLabelFont;
     _lastMessageLabel.textColor = _lastMessageLabelColor;
-    _lastMessageLabel.numberOfLines = 2;
+    _lastMessageLabel.numberOfLines = 1;
     [self.contentView addSubview:_lastMessageLabel];
     
     // Initialize Date Label
