@@ -131,6 +131,8 @@ NSString *const ATLConversationListViewControllerDeletionModeGlobal = @"Global";
         self.searchController.searchResultsDelegate = self;
         self.searchController.searchResultsDataSource = self;
     }
+    
+    [self atl_registerForNotifications];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -165,6 +167,7 @@ NSString *const ATLConversationListViewControllerDeletionModeGlobal = @"Global";
     [super viewDidAppear:animated];
     self.hasAppeared = YES;
 }
+
 
 #pragma mark - Public Setters
 
@@ -503,6 +506,15 @@ NSString *const ATLConversationListViewControllerDeletionModeGlobal = @"Global";
     }
 }
 
+#pragma mark - Notification Handlers
+
+- (void)layerClientDidAuthenticate
+{
+    if (self.layerClient.authenticatedUserID && !self.queryController) {
+        [self setupConversationDataSource];
+    }
+}
+
 #pragma mark - Helpers
 
 - (NSString *)defaultLastMessageTextForConversation:(LYRConversation *)conversation
@@ -547,6 +559,14 @@ NSString *const ATLConversationListViewControllerDeletionModeGlobal = @"Global";
             [self.delegate conversationListViewController:self didDeleteConversation:conversation deletionMode:deletionMode];
         }
     }
+}
+
+#pragma mark - NSNotification Center Registration
+
+- (void)atl_registerForNotifications
+{
+    // Layer Notifications
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(layerClientDidAuthenticate) name:LYRClientDidAuthenticateNotification object:nil];
 }
 
 @end
