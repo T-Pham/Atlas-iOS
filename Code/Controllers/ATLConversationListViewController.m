@@ -248,6 +248,11 @@ NSString *const ATLConversationListViewControllerDeletionModeGlobal = @"Global";
         NSLog(@"LayerKit failed to execute query with error: %@", error);
         return;
     }
+    
+    if ([self.delegate respondsToSelector:@selector(conversationListViewController:didChangeNumberOfConversations:)]) {
+        [self.delegate conversationListViewController:self didChangeNumberOfConversations:@(self.queryController.totalNumberOfObjects)];
+    }
+    
     [self.tableView reloadData];
 }
 
@@ -460,6 +465,10 @@ NSString *const ATLConversationListViewControllerDeletionModeGlobal = @"Global";
             [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
         }
         self.conversationSelectedBeforeContentChange = nil;
+    }
+    
+    if ([self.delegate respondsToSelector:@selector(conversationListViewController:didChangeNumberOfConversations:)]) {
+        [self.delegate conversationListViewController:self didChangeNumberOfConversations:@(self.queryController.totalNumberOfObjects)];
     }
 }
 

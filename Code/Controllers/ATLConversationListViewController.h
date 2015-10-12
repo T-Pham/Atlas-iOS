@@ -65,6 +65,11 @@
  */
 - (void)conversationListViewController:(ATLConversationListViewController *)conversationListViewController didSearchForText:(NSString *)searchText completion:(void (^)(NSSet *filteredParticipants))completion;
 
+/**
+ @abstract Bandlab extension. Need to show/hide a zero case view.
+ */
+- (void)conversationListViewController:(ATLConversationListViewController *)conversationListViewController didChangeNumberOfConversations:(NSNumber *)numberOfConversations;
+
 @end
 
 ///---------------------------------------
