@@ -544,7 +544,7 @@ NSString *const ATLConversationListViewControllerDeletionModeGlobal = @"Global";
         } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeVideoMP4]) {
             lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.video.key", ATLVideoMIMETypePlaceholderText, nil);
         } else {
-            lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.default.key", ATLImageMIMETypePlaceholderText, nil);
+            lastMessageText = @"";
         }
     return lastMessageText;
 }

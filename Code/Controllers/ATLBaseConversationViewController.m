@@ -238,11 +238,6 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
     [self configureWithKeyboardNotification:notification];
 }
 
-- (void)applicationDidBecomeActive
-{
-    [self.view becomeFirstResponder];
-}
-
 - (void)messageInputToolbarDidChangeHeight:(NSNotification *)notification
 {
     if (!self.messageInputToolbar.superview) {
@@ -365,9 +360,6 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
     // Keyboard Notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
-    
-    // Foreground/Background Notifications
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
 
     // ATLMessageInputToolbar Notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(textViewTextDidBeginEditing:) name:UITextViewTextDidBeginEditingNotification object:self.messageInputToolbar.textInputView];
