@@ -107,9 +107,14 @@ extern NSString *const ATLMessageInputToolbarAccessibilityLabel;
  
 /**
  @abstract The right accessory button for the view.
- @discussion By default, the button displays the text "SEND".
  */
 @property (nonatomic) UIButton *rightAccessoryButton;
+
+/**
+ @abstract The right accessory button title.
+ @discussion By default, the title is "Send".
+ */
+@property (nonatomic) NSString *rightAccessoryButtonTitle;
 
 /**
  @abstract The font color for the right accessory button in active state.
@@ -149,6 +154,12 @@ extern NSString *const ATLMessageInputToolbarAccessibilityLabel;
  @abstract An automatically resizing message composition field.
  */
 @property (nonatomic) ATLMessageComposeTextView *textInputView;
+
+/**
+  @abstract The margin on top and bottom of the textInputView.
+  @default 7.0f.
+  */
+@property (nonatomic) CGFloat verticalMargin;
 
 /**
  @abstract The delegate object for the view.

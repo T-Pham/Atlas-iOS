@@ -1,8 +1,8 @@
 //
-//  Atlas.m
+//  UIResponder+ATLFirstResponder.h
 //  Atlas
 //
-//  Created by Kevin Coleman on 10/27/14.
+//  Created by Kabir Mahal on 5/15/15.
 //  Copyright (c) 2015 Layer. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,14 @@
 //  limitations under the License.
 //
 
-#import "Atlas.h"
+#import <UIKit/UIKit.h>
 
-NSString *const ATLVersionString = @"1.0.14";
+/**
+ @abstract This category on `UIRResponder` finds the current first responder of the application.
+ @discussion This category is used in Atlas internally to override next responder status.
+ */
+@interface UIResponder (ATLFirstResponder)
+
++ (id)atl_currentFirstResponder;
+
+@end

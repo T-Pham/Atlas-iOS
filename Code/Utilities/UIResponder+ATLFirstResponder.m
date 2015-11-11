@@ -1,8 +1,8 @@
 //
-//  Atlas.m
+//  UIResponder+ATLFirstResponder.m
 //  Atlas
 //
-//  Created by Kevin Coleman on 10/27/14.
+//  Created by Kabir Mahal on 5/15/15.
 //  Copyright (c) 2015 Layer. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,20 @@
 //  limitations under the License.
 //
 
-#import "Atlas.h"
+#import "UIResponder+ATLFirstResponder.h"
 
-NSString *const ATLVersionString = @"1.0.14";
+static __weak id currentFirstResponder;
+
+@implementation UIResponder (ATLFirstResponder)
+
++ (id)atl_currentFirstResponder {
+    currentFirstResponder = nil;
+    [[UIApplication sharedApplication] sendAction:@selector(atl_findFirstResponder:) to:nil from:nil forEvent:nil];
+    return currentFirstResponder;
+}
+
+- (void)atl_findFirstResponder:(id)sender {
+    currentFirstResponder = self;
+}
+
+@end

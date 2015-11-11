@@ -52,7 +52,8 @@ static CGFloat const BLTextViewTopPadding = 7.;
 
 // Compose View Button Constants
 static CGFloat const ATLLeftAccessoryButtonWidth = 40.0f;
-static CGFloat const ATLRightAccessoryButtonWidth = 46.0f;
+static CGFloat const ATLRightAccessoryButtonDefaultWidth = 46.0f;
+static CGFloat const ATLRightAccessoryButtonPadding = 5.3f;
 static CGFloat const ATLButtonHeight = 28.0f;
 
 + (void)initialize
@@ -92,8 +93,11 @@ static CGFloat const ATLButtonHeight = 28.0f;
         self.textInputView.layer.cornerRadius = 5.0f;
         [self addSubview:self.textInputView];
         
+        self.verticalMargin = ATLVerticalMargin;
+        
         self.rightAccessoryButton = [[UIButton alloc] init];
         [self.rightAccessoryButton addTarget:self action:@selector(rightAccessoryButtonTapped) forControlEvents:UIControlEventTouchUpInside];
+        self.rightAccessoryButtonTitle = @"Send";
         [self addSubview:self.rightAccessoryButton];
         [self configureRightAccessoryButtonState];
         
@@ -138,12 +142,16 @@ static CGFloat const ATLButtonHeight = 28.0f;
     leftButtonFrame.size.height = ATLButtonHeight;
     leftButtonFrame.origin.x = ATLLeftButtonHorizontalMargin;
 
-    rightButtonFrame.size.width = ATLRightAccessoryButtonWidth;
+    if (self.rightAccessoryButtonFont && self.textInputView.text.length) {
+        rightButtonFrame.size.width = [ATLLocalizedString(@"atl.messagetoolbar.send.key", self.rightAccessoryButtonTitle, nil) boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:0 attributes:@{NSFontAttributeName: self.rightAccessoryButtonFont} context:nil].size.width + ATLRightAccessoryButtonPadding;
+    } else {
+        rightButtonFrame.size.width = ATLRightAccessoryButtonDefaultWidth;
+    }
     rightButtonFrame.size.height = ATLButtonHeight;
     rightButtonFrame.origin.x = CGRectGetWidth(frame) - CGRectGetWidth(rightButtonFrame) - ATLRightButtonHorizontalMargin;
 
     textViewFrame.origin.x = CGRectGetMaxX(leftButtonFrame) + ATLLeftButtonHorizontalMargin;
-    textViewFrame.origin.y = ATLVerticalMargin;
+    textViewFrame.origin.y = self.verticalMargin;
     textViewFrame.size.width = CGRectGetMinX(rightButtonFrame) - CGRectGetMinX(textViewFrame) - ATLRightButtonHorizontalMargin;
 
     self.dummyTextView.attributedText = self.textInputView.attributedText;
@@ -151,7 +159,7 @@ static CGFloat const ATLButtonHeight = 28.0f;
 
     textViewFrame.size.height = ceil(MIN(fittedTextViewSize.height, self.textViewMaxHeight));
 
-    frame.size.height = CGRectGetHeight(textViewFrame) + ATLVerticalMargin * 2;
+    frame.size.height = CGRectGetHeight(textViewFrame) + self.verticalMargin * 2;
     frame.origin.y -= frame.size.height - CGRectGetHeight(self.frame);
  
     // Only calculate button centerY once to anchor it to bottom of bar.
@@ -407,7 +415,7 @@ static CGFloat const ATLButtonHeight = 28.0f;
     [self.rightAccessoryButton setImage:nil forState:UIControlStateNormal];
     self.rightAccessoryButton.contentEdgeInsets = UIEdgeInsetsMake(2, 0, 0, 0);
     self.rightAccessoryButton.titleLabel.font = self.rightAccessoryButtonFont;
-    [self.rightAccessoryButton setTitle:ATLLocalizedString(@"atl.messagetoolbar.send.key", @"Send", nil) forState:UIControlStateNormal];
+    [self.rightAccessoryButton setTitle:ATLLocalizedString(@"atl.messagetoolbar.send.key", self.rightAccessoryButtonTitle, nil) forState:UIControlStateNormal];
     [self.rightAccessoryButton setTitleColor:self.rightAccessoryButtonActiveColor forState:UIControlStateNormal];
     [self.rightAccessoryButton setTitleColor:self.rightAccessoryButtonDisabledColor forState:UIControlStateDisabled];
     if (!self.displaysRightAccessoryImage && !self.textInputView.text.length) {

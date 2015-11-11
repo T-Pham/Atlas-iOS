@@ -19,10 +19,12 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <LayerKit/LayerKit.h>
+@import LayerKit;
 #import <MapKit/MapKit.h>
 #import <ImageIO/ImageIO.h>
 #import "ATLMediaAttachment.h"
+#import "UIResponder+ATLFirstResponder.h"
+#import "ATLMessageComposeTextView.h"
 
 extern NSString *const ATLMIMETypeTextPlain;          // text/plain
 extern NSString *const ATLMIMETypeImagePNG;           // image/png
@@ -80,6 +82,12 @@ CGSize ATLTextPlainSize(NSString *string, UIFont *font);
 CGRect ATLImageRectConstrainedToSize(CGSize imageSize, CGSize maxSize);
 
 CGFloat ATLDegreeToRadians(CGFloat degrees);
+
+//------------------------
+// @name Message Utilities
+//------------------------
+
+LYRMessage *ATLMessageForParts(LYRClient *layerClient, NSArray *messageParts, NSString *pushText, NSString *pushSound);
 
 //-----------------------------
 // @name Message Part Utilities
