@@ -395,18 +395,16 @@ static CGFloat const ATLButtonHeight = 28.0f;
 
 - (void)configureRightAccessoryButtonState
 {
-    if (self.textInputView.text.length) {
-        [self configureRightAccessoryButtonForText];
-        self.rightAccessoryButton.enabled = YES;
-    } else {
-        if (self.displaysRightAccessoryImage) {
-            [self configureRightAccessoryButtonForImage];
-            self.rightAccessoryButton.enabled = YES;
-        } else {
-            [self configureRightAccessoryButtonForText];
-            self.rightAccessoryButton.enabled = NO;
-        }
+    [self configureRightAccessoryButtonForText];
+    if (!self.maxLengthOfMessage) {
+        self.maxLengthOfMessage = @(2048);
     }
+
+    BOOL lenghtGreaterThanMaxLength = self.textInputView.text.length > self.maxLengthOfMessage.integerValue;
+    
+    self.textInputView.layer.borderWidth = lenghtGreaterThanMaxLength? 1. : 0.;
+    self.textInputView.layer.borderColor = lenghtGreaterThanMaxLength? [UIColor colorWithRed:220./255. green:55./255. blue:16./255. alpha:1.].CGColor : nil;
+    self.rightAccessoryButton.enabled = !lenghtGreaterThanMaxLength && self.textInputView.text.length > 0;
 }
 
 - (void)configureRightAccessoryButtonForText

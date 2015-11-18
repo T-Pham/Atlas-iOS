@@ -191,4 +191,14 @@ extern NSString *const ATLMessageInputToolbarAccessibilityLabel;
  */
 @property (nonatomic, weak) UIViewController *containerViewController;
 
+//-------------------
+// Bandlab extension
+//-------------------
+
+/**
+ @abstract We will use this limit to show/hide a layer of self.textInputView and enable/disable right acessory button
+ @see configureRightAccessoryButtonState
+*/
+@property (nonatomic, strong) NSNumber *maxLengthOfMessage;
+
 @end
