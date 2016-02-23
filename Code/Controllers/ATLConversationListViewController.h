@@ -86,11 +86,6 @@
  */
 - (NSString *)conversationListViewController:(ATLConversationListViewController *)conversationListViewController titleForConversation:(LYRConversation *)conversation;
 
-/**
- Bandlab extantion. By default title of the action button is equal - "Global". We need change him to a localizible string.
- */
-- (NSString *)actionStringForGlobalDeletionMode;
-
 @optional
 
 /**

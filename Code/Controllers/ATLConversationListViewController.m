@@ -345,9 +345,7 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
                     actionString = ATLLocalizedString(@"atl.conversationlist.deletionmode.mydevices.key", ATLConversationListViewControllerDeletionModeMyDevices, nil);
                     break;
                 case LYRDeletionModeAllParticipants:
-                    if (self.dataSource) {
-                        actionString = [self.dataSource actionStringForGlobalDeletionMode];                        
-                    }
+                    actionString = ATLLocalizedString(@"atl.conversationlist.deletionmode.everyone.key", ATLConversationListViewControllerDeletionModeEveryone, nil);
                     break;
                 default:
                     break;
