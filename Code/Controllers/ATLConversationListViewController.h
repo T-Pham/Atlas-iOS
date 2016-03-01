@@ -72,6 +72,12 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)conversationListViewController:(ATLConversationListViewController *)conversationListViewController didChangeNumberOfConversations:(NSNumber *)numberOfConversations;
 
+/**
+ @abstract Bandlab extension. We need it to have ability make a custom processing for a conversation deletion
+ */
+- (BOOL)conversationListViewController:(ATLConversationListViewController *)conversationListViewController shouldUseAtlasDeletionLogicForConversation:(LYRConversation *)conversation;
+- (void)conversationListViewController:(ATLConversationListViewController *)conversationListViewController willDeleteConversationAtIndexPath:(NSIndexPath *)indexPath withDeletionMode:(LYRDeletionMode)deletionMode;
+
 @end
 
 ///---------------------------------------

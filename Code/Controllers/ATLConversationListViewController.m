@@ -560,7 +560,17 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
 - (void)deleteConversationAtIndexPath:(NSIndexPath *)indexPath withDeletionMode:(LYRDeletionMode)deletionMode
 {
     LYRConversation *conversation = [self.queryController objectAtIndexPath:indexPath];
-    [self deleteConversation:conversation withDeletionMode:deletionMode];
+    
+    BOOL shouldUseAtlasDeletionLogic = YES;
+    if ([self.delegate respondsToSelector:@selector(conversationListViewController:shouldUseAtlasDeletionLogicForConversation:)]) {
+        shouldUseAtlasDeletionLogic = [self.delegate conversationListViewController:self shouldUseAtlasDeletionLogicForConversation:conversation];
+    }
+    
+    if (shouldUseAtlasDeletionLogic) {
+        [self deleteConversation:conversation withDeletionMode:deletionMode];
+    } else if ([self.delegate respondsToSelector:@selector(conversationListViewController:willDeleteConversationAtIndexPath:withDeletionMode:)]) {
+        [self.delegate conversationListViewController:self willDeleteConversationAtIndexPath:indexPath withDeletionMode:deletionMode];
+    }
 }
 
 - (void)deleteConversation:(LYRConversation *)conversation withDeletionMode:(LYRDeletionMode)deletionMode
