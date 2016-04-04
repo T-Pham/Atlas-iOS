@@ -537,7 +537,7 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
 
 - (void)layerClientDidAuthenticate
 {
-    if (self.layerClient.authenticatedUserID && !self.queryController) {
+    if (self.layerClient.authenticatedUser.userID && !self.queryController) {
         [self setupConversationDataSource];
     }
 }
