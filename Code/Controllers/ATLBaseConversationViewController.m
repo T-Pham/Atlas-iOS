@@ -118,6 +118,7 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
         [self updateTopCollectionViewInset];
     }
     [self updateBottomCollectionViewInset];
+    [self atl_keyboardRegisterForNotification];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -159,6 +160,7 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
             [self.messageInputToolbar.textInputView resignFirstResponder];
         }
     }
+    [self atl_keyboardUnregisterForNotification];
 }
 
 - (void)dealloc
@@ -366,13 +368,23 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
 
 - (void)atl_baseRegisterForNotifications
 {
-    // Keyboard Notifications
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
-
     // ATLMessageInputToolbar Notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(textViewTextDidBeginEditing:) name:UITextViewTextDidBeginEditingNotification object:self.messageInputToolbar.textInputView];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(messageInputToolbarDidChangeHeight:) name:ATLMessageInputToolbarDidChangeHeightNotification object:self.messageInputToolbar];
+}
+
+- (void)atl_keyboardRegisterForNotification
+{
+    // Keyboard Notifications
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)atl_keyboardUnregisterForNotification
+{
+    // Keyboard Notifications
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
 @end
