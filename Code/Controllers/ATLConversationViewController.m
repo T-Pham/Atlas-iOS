@@ -326,6 +326,18 @@ static NSInteger const ATLPhotoActionSheet = 1000;
     return cell;
 }
 
+- (void)collectionView:(UICollectionView *)collectionView willDisplayCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath {
+    if ([self.delegate respondsToSelector:@selector(conversationViewController:willDisplayCell:forItemAtIndexPath:)]) {
+        [self.delegate conversationViewController:self willDisplayCell:cell forItemAtIndexPath:indexPath];
+    }
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didEndDisplayingCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath {
+    if ([self.delegate respondsToSelector:@selector(conversationViewController:didEndDisplayingCell:forItemAtIndexPath:)]) {
+        [self.delegate conversationViewController:self didEndDisplayingCell:cell forItemAtIndexPath:indexPath];
+    }
+}
+
 #pragma mark - UICollectionViewDelegate
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath

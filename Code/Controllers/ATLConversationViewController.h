@@ -99,6 +99,10 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (NSOrderedSet <LYRMessage*> *)conversationViewController:(ATLConversationViewController *)viewController messagesForMediaAttachments:(NSArray <ATLMediaAttachment*> *)mediaAttachments;
 
+- (void)conversationViewController:(ATLConversationViewController *)conversationViewController willDisplayCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath;
+
+- (void)conversationViewController:(ATLConversationViewController *)conversationViewController didEndDisplayingCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath;
+
 @end
 
 ///---------------------------------------
