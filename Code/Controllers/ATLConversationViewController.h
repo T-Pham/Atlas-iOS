@@ -99,6 +99,11 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (NSOrderedSet <LYRMessage*> *)conversationViewController:(ATLConversationViewController *)viewController messagesForMediaAttachments:(NSArray <ATLMediaAttachment*> *)mediaAttachments;
 
+/**
+ * BandLab extension
+ */
+- (void)messageInputToolbar:(ATLMessageInputToolbar *)messageInputToolbar didTapLeftAccessoryButton:(UIButton *)leftAccessoryButton;
+
 @end
 
 ///---------------------------------------
