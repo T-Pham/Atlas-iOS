@@ -40,21 +40,17 @@ static UIView *ATLMakeLoadingMoreConversationsIndicatorView()
     return activityIndicatorView;
 }
 
-@interface ATLConversationListViewController () <UIActionSheetDelegate, LYRQueryControllerDelegate, UISearchBarDelegate, UISearchControllerDelegate, UISearchDisplayDelegate>
+@interface ATLConversationListViewController () <UIActionSheetDelegate, LYRQueryControllerDelegate, UISearchBarDelegate, UISearchResultsUpdating>
 
 @property (nonatomic) LYRQueryController *queryController;
-@property (nonatomic) LYRQueryController *searchQueryController;
 @property (nonatomic) LYRConversation *conversationToDelete;
 @property (nonatomic) LYRConversation *conversationSelectedBeforeContentChange;
-@property (nonatomic) UISearchBar *searchBar;
 @property (nonatomic) BOOL hasAppeared;
-@property (nonatomic) BOOL searchQueryControllerIsActive;
 @property (nonatomic) BOOL showingMoreConversationsIndicator;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-@property (nonatomic, readwrite) UISearchDisplayController *searchController;
-#pragma GCC diagnostic pop
+@property (nonatomic, readwrite) UISearchController *searchController;
+@property (nonatomic) NSMutableArray *insertedRowIndexPaths;
+@property (nonatomic) NSMutableArray *deletedRowIndexPaths;
+@property (nonatomic) NSMutableArray *updatedRowIndexPaths;
 
 @end
 
@@ -129,24 +125,25 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
     self.tableView.accessibilityLabel = ATLConversationTableViewAccessibilityLabel;
     self.tableView.accessibilityIdentifier = ATLConversationTableViewAccessibilityIdentifier;
     self.tableView.isAccessibilityElement = YES;
-    [self configureLoadingMoreConversationsIndicatorView];
+    self.tableView.tableFooterView = [[UIView alloc] init];
     [self.tableView registerClass:self.cellClass forCellReuseIdentifier:ATLConversationCellReuseIdentifier];
     
     if (self.shouldDisplaySearchController) {
-        self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectZero];
-        [self.searchBar sizeToFit];
-        self.searchBar.translucent = NO;
-        self.searchBar.accessibilityLabel = @"Search Bar";
-        self.searchBar.delegate = self;
-        self.tableView.tableHeaderView = self.searchBar;
+        // UISearchController
+        self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+        self.searchController.searchResultsUpdater = self;
+        self.searchController.dimsBackgroundDuringPresentation = NO;
+
+        // UISearchBar
+        self.searchController.searchBar.delegate = self;
+        self.searchController.searchBar.translucent = NO;
+        self.searchController.searchBar.accessibilityLabel = @"Search Bar";
+        [self.searchController.searchBar sizeToFit];
+        self.tableView.tableHeaderView = self.searchController.searchBar;
         
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        self.searchController = [[UISearchDisplayController alloc] initWithSearchBar:self.searchBar contentsController:self];
-#pragma GCC diagnostic pop
-        self.searchController.delegate = self;
-        self.searchController.searchResultsDelegate = self;
-        self.searchController.searchResultsDataSource = self;
+        // Since the search view covers the table view when active we make the
+        // table view controller define the presentation context
+        self.definesPresentationContext = YES;
     }
 }
 
@@ -157,19 +154,19 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
     // Perform setup here so that our children can initialize via viewDidLoad
     if (!self.queryController) {
         [self setupConversationQueryController];
+    } else if (!self.queryController.delegate) {
+        self.queryController.delegate = self;
+        [self.tableView reloadData];
     }
     
     if (!self.hasAppeared) {
         // Hide the search bar
-        CGFloat contentOffset = self.tableView.contentOffset.y + self.searchBar.frame.size.height;
+        CGFloat contentOffset = self.tableView.contentOffset.y + self.searchController.searchBar.frame.size.height;
         self.tableView.contentOffset = CGPointMake(0, contentOffset);
         self.tableView.rowHeight = self.rowHeight;
-        if (self.allowsEditing) [self addEditButton];
-    }
-    
-    if (self.shouldDisplaySearchController && self.searchController.isActive) {
-        self.searchQueryControllerIsActive = YES;
-        [self.searchController.searchResultsTableView reloadData];
+        if (self.allowsEditing) {
+            [self addEditButton];
+        }
     }
     
     NSIndexPath *selectedIndexPath = [self.tableView indexPathForSelectedRow];
@@ -197,6 +194,8 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
 - (void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
+    
+    self.queryController.delegate = nil;
     
     [[NSNotificationCenter defaultCenter] removeObserver:self name:LYRClientDidAuthenticateNotification object:self.layerClient];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:LYRClientDidDeauthenticateNotification object:self.layerClient];
@@ -253,6 +252,11 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
     _rowHeight = rowHeight;
 }
 
+- (void)updatePredicate:(nullable LYRPredicate *)predicate
+{
+    [self updateQueryControllerWithPredicate:predicate];
+}
+
 #pragma mark - Set Up
 
 - (void)addEditButton
@@ -269,7 +273,6 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
         return;
     }
     LYRQuery *query = [LYRQuery queryWithQueryableClass:[LYRConversation class]];
-    query.predicate = [LYRPredicate predicateWithProperty:@"participants" predicateOperator:LYRPredicateOperatorIsIn value:@[ self.layerClient.authenticatedUser.userID ]];
     query.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"lastMessage.receivedAt" ascending:NO]];
     
     if ([self.dataSource respondsToSelector:@selector(conversationListViewController:willLoadWithQuery:)]) {
@@ -346,6 +349,10 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
 - (void)configureCell:(UITableViewCell<ATLConversationPresenting> *)conversationCell atIndexPath:(NSIndexPath *)indexPath
 {
     LYRConversation *conversation = [self.queryController numberOfObjectsInSection:indexPath.section] ? [self.queryController objectAtIndexPath:indexPath] : nil;
+    if (conversation == nil) {
+        return;     // NOTE the early return if the conversation isn't found!
+    }
+    
     [conversationCell presentConversation:conversation];
     
     if (self.displaysAvatarItem) {
@@ -498,7 +505,6 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
         selectedConversation = [self.queryController objectAtIndexPath:indexPath];
     }
     self.conversationSelectedBeforeContentChange = selectedConversation;
-    [self.tableView beginUpdates];
 }
 
 - (void)queryController:(LYRQueryController *)controller
@@ -509,22 +515,17 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
 {
     switch (type) {
         case LYRQueryControllerChangeTypeInsert:
-            [self.tableView insertRowsAtIndexPaths:@[newIndexPath]
-                                  withRowAnimation:UITableViewRowAnimationAutomatic];
+            [self.insertedRowIndexPaths addObject:newIndexPath];
             break;
         case LYRQueryControllerChangeTypeUpdate:
-            [self.tableView reloadRowsAtIndexPaths:@[indexPath]
-                                  withRowAnimation:UITableViewRowAnimationAutomatic];
+            [self.updatedRowIndexPaths addObject:indexPath];
             break;
         case LYRQueryControllerChangeTypeMove:
-            [self.tableView deleteRowsAtIndexPaths:@[indexPath]
-                                  withRowAnimation:UITableViewRowAnimationAutomatic];
-            [self.tableView insertRowsAtIndexPaths:@[newIndexPath]
-                                  withRowAnimation:UITableViewRowAnimationAutomatic];
+            [self.deletedRowIndexPaths addObject:indexPath];
+            [self.insertedRowIndexPaths addObject:newIndexPath];
             break;
         case LYRQueryControllerChangeTypeDelete:
-            [self.tableView deleteRowsAtIndexPaths:@[indexPath]
-                                  withRowAnimation:UITableViewRowAnimationAutomatic];
+            [self.deletedRowIndexPaths addObject:indexPath];
             break;
         default:
             break;
@@ -533,8 +534,16 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
 
 - (void)queryControllerDidChangeContent:(LYRQueryController *)queryController
 {
+    [self.tableView beginUpdates];
+    [self.tableView deleteRowsAtIndexPaths:self.deletedRowIndexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
+    [self.tableView insertRowsAtIndexPaths:self.insertedRowIndexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
+    [self.tableView reloadRowsAtIndexPaths:self.updatedRowIndexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
     [self.tableView endUpdates];
-
+    
+    self.insertedRowIndexPaths = nil;
+    self.deletedRowIndexPaths = nil;
+    self.updatedRowIndexPaths = nil;
+    
     [self configureLoadingMoreConversationsIndicatorView];
 
     if (self.conversationSelectedBeforeContentChange) {
@@ -544,6 +553,21 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
         }
         self.conversationSelectedBeforeContentChange = nil;
     }
+}
+
+- (NSMutableArray *)insertedRowIndexPaths
+{
+    return _insertedRowIndexPaths ?: (_insertedRowIndexPaths = [[NSMutableArray alloc] init]);
+}
+
+- (NSMutableArray *)deletedRowIndexPaths
+{
+    return _deletedRowIndexPaths ?: (_deletedRowIndexPaths = [[NSMutableArray alloc] init]);
+}
+
+- (NSMutableArray *)updatedRowIndexPaths
+{
+    return _updatedRowIndexPaths ?: (_updatedRowIndexPaths = [[NSMutableArray alloc] init]);
 }
 
 #pragma mark - UIScrollViewDelegate
@@ -597,92 +621,63 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
     self.tableView.tableFooterView = self.showingMoreConversationsIndicator ? ATLMakeLoadingMoreConversationsIndicatorView() : [[UIView alloc] init];
 }
 
-#pragma mark - UISearchDisplayDelegate
+#pragma mark - UISearchResultsUpdating
 
-- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar
+- (void)updateSearchResultsForSearchController:(UISearchController *)searchController
 {
-    self.searchQueryControllerIsActive = YES;
-}
-
-- (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar
-{
-    self.searchQueryControllerIsActive = NO;
-}
-
-- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar
-{
-    self.searchQueryControllerIsActive = NO;
-}
-
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-
-- (void)searchDisplayController:(UISearchDisplayController *)controller didLoadSearchResultsTableView:(UITableView *)tableView
-{
-    tableView.rowHeight = self.rowHeight;
-    [tableView registerClass:self.cellClass forCellReuseIdentifier:ATLConversationCellReuseIdentifier];
-}
-
-- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
-{
+    NSString *searchString = searchController.searchBar.text;
+    if ([searchString isEqualToString:@""]) {
+        [self updateQueryControllerWithPredicate:nil];
+        return;
+    }
     if ([self.delegate respondsToSelector:@selector(conversationListViewController:didSearchForText:completion:)]) {
         [self.delegate conversationListViewController:self didSearchForText:searchString completion:^(NSSet *filteredParticipants) {
-            if (![searchString isEqualToString:controller.searchBar.text]) return;
+            if (![searchString isEqualToString:self.searchController.searchBar.text]) return;
             NSSet *participantIdentifiers = [filteredParticipants valueForKey:@"userID"];
-            
-            LYRQuery *query = [LYRQuery queryWithQueryableClass:[LYRConversation class]];
-            query.predicate = [LYRPredicate predicateWithProperty:@"participants" predicateOperator:LYRPredicateOperatorIsIn value:participantIdentifiers];
-            query.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"lastMessage.receivedAt" ascending:NO]];
-            
-            NSError *error;
-            self.searchQueryController = [self.layerClient queryControllerWithQuery:query error:&error];
-            if (!self.queryController) {
-                NSLog(@"LayerKit failed to create a query controller with error: %@", error);
-                return;
-            }
-            
-            [self.searchQueryController execute:&error];
-            [self.searchController.searchResultsTableView reloadData];
+
+            LYRPredicate *predicate = [LYRPredicate predicateWithProperty:@"participants" predicateOperator:LYRPredicateOperatorIsIn value:participantIdentifiers];
+
+            [self updateQueryControllerWithPredicate: predicate];
         }];
-    }
-    return NO;
-}
-
-#pragma GCC diagnostic pop
-
-- (LYRQueryController *)queryController
-{
-    if (self.searchQueryControllerIsActive && self.searchController.isActive) {
-        return _searchQueryController;
-    } else {
-        return _queryController;
     }
 }
 
 #pragma mark - Helpers
 
+- (void)updateQueryControllerWithPredicate:(LYRPredicate *)predicate {
+    self.queryController.query.predicate = predicate;
+    
+    NSError *error;
+    [self.queryController execute:&error];
+    
+    [self.tableView reloadData];
+}
+
 - (NSString *)defaultLastMessageTextForConversation:(LYRConversation *)conversation
 {
     NSString *lastMessageText;
     LYRMessage *lastMessage = conversation.lastMessage;
-    LYRMessagePart *messagePart = lastMessage.parts[0];
-    if ([messagePart.MIMEType isEqualToString:ATLMIMETypeTextPlain]) {
-        lastMessageText = [[NSString alloc] initWithData:messagePart.data encoding:NSUTF8StringEncoding];
-    } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeImageJPEG]) {
-        lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.text.key", ATLImageMIMETypePlaceholderText, nil);
-    } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeImagePNG]) {
-        lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.png.key", ATLImageMIMETypePlaceholderText, nil);
-    } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeImageGIF]) {
-        lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.gif.key", ATLGIFMIMETypePlaceholderText, nil);
-    } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeLocation]) {
-        lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.location.key", ATLLocationMIMETypePlaceholderText, nil);
-    } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeVideoMP4]) {
-        lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.video.key", ATLVideoMIMETypePlaceholderText, nil);
-    } else {
-        lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.default.key", ATLImageMIMETypePlaceholderText, nil);
+    for (LYRMessagePart *messagePart in lastMessage.parts) {
+        if ([messagePart.MIMEType isEqualToString:ATLMIMETypeTextPlain]) {
+            lastMessageText = [[NSString alloc] initWithData:messagePart.data encoding:NSUTF8StringEncoding];
+        } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeImageJPEG]) {
+            lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.text.key", ATLImageMIMETypePlaceholderText, nil);
+        } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeImagePNG]) {
+            lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.png.key", ATLImageMIMETypePlaceholderText, nil);
+        } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeImageGIF]) {
+            lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.gif.key", ATLGIFMIMETypePlaceholderText, nil);
+        } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeLocation]) {
+            lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.location.key", ATLLocationMIMETypePlaceholderText, nil);
+        } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeVideoMP4]) {
+            lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.video.key", ATLVideoMIMETypePlaceholderText, nil);
+        } else {
+            lastMessageText = ATLLocalizedString(@"atl.conversationlist.lastMessage.text.default.key", ATLImageMIMETypePlaceholderText, nil);
+        }
+        if (lastMessageText) {
+            break;
+        }
     }
-    return lastMessageText;
+    return lastMessageText ?: @"no content";
 }
 
 - (void)deleteConversationAtIndexPath:(NSIndexPath *)indexPath withDeletionMode:(LYRDeletionMode)deletionMode

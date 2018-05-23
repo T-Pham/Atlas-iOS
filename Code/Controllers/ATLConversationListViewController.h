@@ -19,7 +19,7 @@
 //
 
 #import <UIKit/UIKit.h>
-@import LayerKit;
+#import <LayerKit/LayerKit.h>
 #import "ATLConversationTableViewCell.h"
 #import "ATLAvatarItem.h"
 #import "ATLParticipant.h"
@@ -101,9 +101,9 @@ NS_ASSUME_NONNULL_BEGIN
  @param conversationListViewController The `LYRConversationListViewController` in which the item's data will appear.
  @param conversation The `LYRConversation` object.
  @return An object conforming to the `ATLAvatarItem` protocol. 
- @discussion The data provided by the object conforming to the `ATLAvatarItem` protocol will be displayed in an `LYRAvatarImageView`.
+ @discussion The data provided by the object conforming to the `ATLAvatarItem` protocol will be displayed in an `ATLAvatarView`.
  */
-- (id<ATLAvatarItem>)conversationListViewController:(ATLConversationListViewController *)conversationListViewController avatarItemForConversation:(LYRConversation *)conversation;
+- (nullable id<ATLAvatarItem>)conversationListViewController:(ATLConversationListViewController *)conversationListViewController avatarItemForConversation:(LYRConversation *)conversation;
 
 /**
  @abstract Asks the data source for the table view cell reuse identifier for a conversation.
@@ -113,7 +113,7 @@ NS_ASSUME_NONNULL_BEGIN
  The cell must be given a reuse identifier in the UIStoryboard and that string needs to be passed into the ATLConversationListViewController so it can properly dequeue a
  reuseable cell. If 'nil' is returned, the table view will default to internal values for reuse identifiers.
  */
-- (NSString *)reuseIdentifierForConversationListViewController:(ATLConversationListViewController *)conversationListViewController;
+- (nullable NSString *)reuseIdentifierForConversationListViewController:(ATLConversationListViewController *)conversationListViewController;
 
 /**
  @abstract Asks the data source for a string to display on the delete button for a given deletion mode.
@@ -146,7 +146,7 @@ NS_ASSUME_NONNULL_BEGIN
  @return A string representing the content of the last message.  If `nil` is returned the controller will fall back to default behavior.
  @discussion This is used when the application uses custom `MIMEType`s and wants to customize how they are displayed.
  */
-- (NSString *)conversationListViewController:(ATLConversationListViewController *)conversationListViewController lastMessageTextForConversation:(LYRConversation *)conversation;
+- (nullable NSString *)conversationListViewController:(ATLConversationListViewController *)conversationListViewController lastMessageTextForConversation:(LYRConversation *)conversation;
 
 /**
  @abstract Asks the data source to configure the query used to fetch content for the controller if necessary.
@@ -271,10 +271,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  @abstract The controller used to display search results.
  */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-@property (nonatomic, readonly) UISearchDisplayController *searchController;
-#pragma GCC diagnostic pop
+@property (nonatomic, readonly) UISearchController *searchController;
 
 /**
  @abstract A boolean value that determines if the controller should show a search bar and search display controller.
@@ -293,6 +290,16 @@ NS_ASSUME_NONNULL_BEGIN
  @param conversation The Conversation object to reload the corresponding cell of. Cannot be `nil`.
  */
 - (void)reloadCellForConversation:(LYRConversation *)conversation;
+
+///------------------------------
+/// @name Reloading Conversations
+///------------------------------
+
+/**
+ @abstract Updates the predicate used to perform searches.
+ @param predicate The predicate to use; `nil` is permitted.
+ */
+- (void)updatePredicate:(nullable LYRPredicate *)predicate NS_SWIFT_NAME(update(predicate:));
 
 @end
 NS_ASSUME_NONNULL_END

@@ -24,7 +24,7 @@
 #import "LYRClientMock.h"
 #import "ATLSampleConversationListViewController.h"
 
-extern NSString *const ATLAvatarImageViewAccessibilityLabel;
+extern NSString *const ATLAvatarViewAccessibilityLabel;
 
 @interface ATLConversationListViewController ()
 
@@ -337,7 +337,7 @@ extern NSString *const ATLAvatarImageViewAccessibilityLabel;
 
     // now send the message
     LYRMessagePart *part = [LYRMessagePart messagePartWithText:@"Test Message"];
-    LYRMessageMock *message = [self.testInterface.layerClient newMessageWithParts:@[part] options:nil error:nil];
+    LYRMessageMock *message = [self.testInterface.layerClient newMessageWithParts:[NSSet setWithObject:part] options:nil error:nil];
     [conversation sendMessage:message error:nil];
 
     [delegateMock verify];
@@ -611,8 +611,8 @@ extern NSString *const ATLAvatarImageViewAccessibilityLabel;
     [self newConversationWithMockUser:mockUser1 lastMessageText:@"Test Message"];
     [tester waitForAnimationsToFinish];
 
-    ATLAvatarImageView *imageView = (ATLAvatarImageView *)[tester waitForViewWithAccessibilityLabel:ATLAvatarImageViewAccessibilityLabel];
-    expect(imageView.image).will.beTruthy;
+    ATLAvatarView *avatarView = (ATLAvatarView *)[tester waitForViewWithAccessibilityLabel:ATLAvatarViewAccessibilityLabel];
+    expect(avatarView.imageView.image).will.beTruthy;
 }
 
 - (LYRConversationMock *)newConversationWithMockUser:(ATLUserMock *)mockUser lastMessageText:(NSString *)lastMessageText
