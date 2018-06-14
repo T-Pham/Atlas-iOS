@@ -50,7 +50,7 @@ static CGFloat const ATLLeftButtonHorizontalMargin = 6.0f;
 static CGFloat const ATLRightButtonHorizontalMargin = 4.0f;
 static CGFloat const ATLVerticalMargin = 7.0f;
 
-static CGFloat const BLTextViewTopPadding = 7.;
+//static CGFloat const BLTextViewTopPadding = 7.;
 
 // Compose View Button Constants
 static CGFloat const ATLLeftAccessoryButtonWidth = 40.0f;
