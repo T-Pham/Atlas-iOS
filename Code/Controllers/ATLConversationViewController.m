@@ -1251,6 +1251,7 @@ static NSInteger const ATLPhotoActionSheet = 1000;
 {
     NSArray *objectChanges = [self.objectChanges copy];
     [self.objectChanges removeAllObjects];
+    [self.conversationDataSource updateMessages];
     
     if (self.collectionView.window == nil) {
         [self.collectionView reloadData];
@@ -1278,7 +1279,6 @@ static NSInteger const ATLPhotoActionSheet = 1000;
     if (self.collectionView) {
         dispatch_suspend(self.animationQueue);
         [self.collectionView performBatchUpdates:^{
-            [self.conversationDataSource updateMessages];
             for (ATLDataSourceChange *change in objectChanges) {
                 switch (change.type) {
                     case LYRQueryControllerChangeTypeInsert:
