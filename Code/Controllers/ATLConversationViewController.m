@@ -262,6 +262,7 @@ static NSInteger const ATLPhotoActionSheet = 1000;
     }
     self.conversationDataSource.queryController.delegate = self;
     self.queryController = self.conversationDataSource.queryController;
+    [self.objectChanges removeAllObjects];
     [self.conversationDataSource updateMessages];
     [self.collectionView reloadData];
 }
@@ -987,6 +988,7 @@ static NSInteger const ATLPhotoActionSheet = 1000;
 - (void)reloadCollectionViewAdjustingForContentHeightChange
 {
     CGFloat priorContentHeight = self.collectionView.contentSize.height;
+    [self.objectChanges removeAllObjects];
     [self.conversationDataSource updateMessages];
     [self.collectionView reloadData];
     CGFloat contentHeightDifference = self.collectionView.collectionViewLayout.collectionViewContentSize.height - priorContentHeight;
